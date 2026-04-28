@@ -19,6 +19,19 @@ def obtener_peliculas(titulo: str = None, activo: bool = True):
 
     return [Pelicula(**r) for r in resultado]
 
+@router.get("/buscar/{titulo}", response_model=list[Pelicula])
+def buscar_por_titulo(titulo: str):
+    registros = leer_todos(Pelicula)
+
+    resultado = [
+        r for r in registros
+        if titulo.lower() in r["titulo"].lower()
+    ]
+
+    if not resultado:
+        raise HTTPException(status_code=404, detail="No se encontraron películas")
+
+    return [Pelicula(**r) for r in resultado]
 
 @router.get("/{pelicula_id}", response_model=Pelicula)
 def obtener_pelicula(pelicula_id: int):
