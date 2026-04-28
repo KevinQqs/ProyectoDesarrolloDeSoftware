@@ -6,9 +6,18 @@ router = APIRouter(prefix="/peliculas", tags=["peliculas"])
 
 
 @router.get("/", response_model=list[Pelicula])
-def obtener_peliculas():
+def obtener_peliculas(titulo: str = None, activo: bool = True):
     registros = leer_todos(Pelicula)
-    return [Pelicula(**r) for r in registros]
+
+    resultado = [r for r in registros if r.get("activo", True) == activo]
+
+    if titulo:
+        resultado = [
+            r for r in resultado
+            if titulo.lower() in r["titulo"].lower()
+        ]
+
+    return [Pelicula(**r) for r in resultado]
 
 
 @router.get("/{pelicula_id}", response_model=Pelicula)
