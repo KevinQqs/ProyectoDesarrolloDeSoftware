@@ -6,10 +6,19 @@ router = APIRouter(prefix="/peliculas", tags=["peliculas"])
 
 
 @router.get("/", response_model=list[Pelicula])
-def obtener_peliculas(titulo: str = None, activo: bool = True):
+def obtener_peliculas(titulo: str = None, activo: bool = None):
     registros = leer_todos(Pelicula)
 
-    resultado = [r for r in registros if r.get("activo", True) == activo]
+    def str_to_bool(valor):
+        return str(valor).lower() == "true"
+
+    resultado = registros
+
+    if activo is not None:
+        resultado = [
+            r for r in resultado
+            if str_to_bool(r.get("activo", True)) == activo
+        ]
 
     if titulo:
         resultado = [
