@@ -61,7 +61,10 @@ def crear_pelicula(pelicula: PeliculaCrear):
     if not any(int(d["id"]) == pelicula.director_id for d in directores):
         raise HTTPException(status_code=404, detail="Director no encontrado")
     registros = leer_todos(Pelicula)
-    nueva = Pelicula(id=obtener_siguiente_id(registros), **pelicula.model_dump())
+    data = pelicula.model_dump()
+    data["activo"] = True
+
+    nueva = Pelicula(id=obtener_siguiente_id(registros), **data)
     registros.append(nueva.model_dump())
     escribir_todos(Pelicula, registros)
     return nueva
@@ -79,10 +82,14 @@ def actualizar_pelicula(pelicula_id: int, datos: PeliculaActualizar):
     raise HTTPException(status_code=404, detail="Película no encontrada")
 
 
-@router.delete("/{pelicula_id}", status_code=204)
+@router.delete("/{pelicula_id}")
 def eliminar_pelicula(pelicula_id: int):
     registros = leer_todos(Pelicula)
-    filtrados = [r for r in registros if int(r["id"]) != pelicula_id]
-    if len(filtrados) == len(registros):
-        raise HTTPException(status_code=404, detail="Película no encontrada")
-    escribir_todos(Pelicula, filtrados)
+
+    for r in registros:
+        if int(r["id"]) == pelicula_id:
+            r["activo"] = False
+            escribir_todos(Pelicula, registros)
+            return {"mensaje": "Película desactivada"}
+
+    raise HTTPException(status_code=404, detail="Película no encontrada")
