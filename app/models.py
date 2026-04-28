@@ -32,7 +32,7 @@ class PeliculaBase(SQLModel):
 
 class Pelicula(PeliculaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    activo: bool = Field(default=True)
+    activo: bool = Field(default=True) 
     director: Director = Relationship(back_populates="peliculas")
     generos: list["Genero"] = Relationship(back_populates="peliculas", link_model=PeliculaGenero)
 
