@@ -1,50 +1,50 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlmodel import Session, select
 from app.models import Director, DirectorCrear, DirectorActualizar
-from app.db import leer_todos, escribir_todos, obtener_siguiente_id
+from app.db import get_session
 
 router = APIRouter(prefix="/directores", tags=["directores"])
 
 
 @router.get("/", response_model=list[Director])
-def obtener_directores():
-    registros = leer_todos(Director)
-    return [Director(**r) for r in registros]
+def obtener_directores(session: Session = Depends(get_session)):
+    return session.exec(select(Director)).all()
 
 
 @router.get("/{director_id}", response_model=Director)
-def obtener_director(director_id: int):
-    registros = leer_todos(Director)
-    for r in registros:
-        if int(r["id"]) == director_id:
-            return Director(**r)
-    raise HTTPException(status_code=404, detail="Director no encontrado")
+def obtener_director(director_id: int, session: Session = Depends(get_session)):
+    director = session.get(Director, director_id)
+    if not director:
+        raise HTTPException(status_code=404, detail="Director no encontrado")
+    return director
 
 
 @router.post("/", response_model=Director, status_code=201)
-def crear_director(director: DirectorCrear):
-    registros = leer_todos(Director)
-    nuevo = Director(id=obtener_siguiente_id(registros), **director.model_dump())
-    registros.append(nuevo.model_dump())
-    escribir_todos(Director, registros)
+def crear_director(director: DirectorCrear, session: Session = Depends(get_session)):
+    nuevo = Director(**director.model_dump())
+    session.add(nuevo)
+    session.commit()
+    session.refresh(nuevo)
     return nuevo
 
 
 @router.patch("/{director_id}", response_model=Director)
-def actualizar_director(director_id: int, datos: DirectorActualizar):
-    registros = leer_todos(Director)
-    for r in registros:
-        if int(r["id"]) == director_id:
-            actualizado = {**r, **{k: v for k, v in datos.model_dump().items() if v is not None}}
-            registros[registros.index(r)] = actualizado
-            escribir_todos(Director, registros)
-            return Director(**actualizado)
-    raise HTTPException(status_code=404, detail="Director no encontrado")
+def actualizar_director(director_id: int, datos: DirectorActualizar, session: Session = Depends(get_session)):
+    director = session.get(Director, director_id)
+    if not director:
+        raise HTTPException(status_code=404, detail="Director no encontrado")
+    for key, value in datos.model_dump(exclude_unset=True).items():
+        setattr(director, key, value)
+    session.add(director)
+    session.commit()
+    session.refresh(director)
+    return director
 
 
 @router.delete("/{director_id}", status_code=204)
-def eliminar_director(director_id: int):
-    registros = leer_todos(Director)
-    filtrados = [r for r in registros if int(r["id"]) != director_id]
-    if len(filtrados) == len(registros):
+def eliminar_director(director_id: int, session: Session = Depends(get_session)):
+    director = session.get(Director, director_id)
+    if not director:
         raise HTTPException(status_code=404, detail="Director no encontrado")
-    escribir_todos(Director, filtrados)
+    session.delete(director)
+    session.commit()

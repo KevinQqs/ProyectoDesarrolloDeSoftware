@@ -1,31 +1,16 @@
-import csv
+from sqlmodel import SQLModel, create_engine, Session
+from dotenv import load_dotenv
 import os
-from typing import Type
-from sqlmodel import SQLModel
 
-DIRECTORIO_DATOS = "datos"
+load_dotenv()
 
-def obtener_ruta_csv(modelo: Type[SQLModel]) -> str:
-    os.makedirs(DIRECTORIO_DATOS, exist_ok=True)
-    return os.path.join(DIRECTORIO_DATOS, f"{modelo.__tablename__}.csv")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-def leer_todos(modelo: Type[SQLModel]) -> list[dict]:
-    ruta = obtener_ruta_csv(modelo)
-    if not os.path.exists(ruta):
-        return []
-    with open(ruta, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+engine = create_engine(DATABASE_URL)
 
-def escribir_todos(modelo: Type[SQLModel], registros: list[dict]) -> None:
-    ruta = obtener_ruta_csv(modelo)
-    if not registros:
-        return
-    with open(ruta, "w", newline="", encoding="utf-8") as f:
-        escritor = csv.DictWriter(f, fieldnames=registros[0].keys())
-        escritor.writeheader()
-        escritor.writerows(registros)
+def crear_tablas():
+    SQLModel.metadata.create_all(engine)
 
-def obtener_siguiente_id(registros: list[dict]) -> int:
-    if not registros:
-        return 1
-    return max(int(r["id"]) for r in registros) + 1
+def get_session():
+    with Session(engine) as session:
+        yield session
