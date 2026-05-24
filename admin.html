@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PelisB — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .admin-badge {
+    background: rgba(232,197,71,0.15);
+    border: 1px solid rgba(232,197,71,0.3);
+    color: var(--accent);
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/admin">Pelis<span>B</span></a>
+  <nav>
+    <button class="active" onclick="showSection('peliculas', this)">Películas</button>
+    <button onclick="showSection('directores', this)">Directores</button>
+    <button onclick="showSection('generos', this)">Géneros</button>
+    <button onclick="showSection('dashboard', this)">Dashboard</button>
+    <span class="admin-badge">Admin</span>
+    <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Salir</button>
+  </nav>
+</header>
+
+<div class="search-wrap" id="search-wrap">
+  <div class="search-title">BUSCAR PELÍCULA</div>
+  <div class="search-row">
+    <input class="search-input" id="search-input" type="text" placeholder="Escribe un título..." oninput="onSearch(this.value)">
+    <button class="btn btn-accent" onclick="buscarPeliculas()">Buscar</button>
+    <button class="btn btn-surface" onclick="limpiarBusqueda()">Limpiar</button>
+  </div>
+</div>
+
+<div class="filter-row" id="filter-row">
+  <span class="filter-label">MOSTRAR:</span>
+  <button class="filter-chip active" onclick="setFiltro('todas', this)">Todas</button>
+  <button class="filter-chip" onclick="setFiltro('activas', this)">Activas</button>
+  <button class="filter-chip" onclick="setFiltro('inactivas', this)">Inactivas</button>
+  <button class="btn btn-accent btn-sm" onclick="abrirModalNuevaPelicula()" style="margin-left:auto">+ Nueva Película</button>
+</div>
+
+<main>
+
+  <!-- PELÍCULAS -->
+  <section class="section active" id="section-peliculas">
+    <div class="section-header">
+      <span class="section-title">Películas</span>
+      <span class="count-badge" id="count-peliculas">0 resultados</span>
+    </div>
+    <div class="grid" id="grid-peliculas">
+      <div class="loading"><div class="spinner"></div>Cargando películas...</div>
+    </div>
+  </section>
+
+  <!-- DIRECTORES -->
+  <section class="section" id="section-directores">
+    <div class="section-header">
+      <span class="section-title">Directores</span>
+      <button class="btn btn-accent btn-sm" onclick="abrirModal('modal-director')">+ Nuevo Director</button>
+    </div>
+    <div class="list" id="list-directores">
+      <div class="loading"><div class="spinner"></div>Cargando directores...</div>
+    </div>
+  </section>
+
+  <!-- GÉNEROS -->
+  <section class="section" id="section-generos">
+    <div class="section-header">
+      <span class="section-title">Géneros</span>
+      <button class="btn btn-accent btn-sm" onclick="abrirModal('modal-genero')">+ Nuevo Género</button>
+    </div>
+    <div class="list" id="list-generos">
+      <div class="loading"><div class="spinner"></div>Cargando géneros...</div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="section" id="section-dashboard">
+    <div class="section-title" style="margin-bottom:24px">Dashboard</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number" id="stat-peliculas">—</div><div class="stat-label">Películas</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-activas">—</div><div class="stat-label">Activas</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-directores">—</div><div class="stat-label">Directores</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-generos">—</div><div class="stat-label">Géneros</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-rating">—</div><div class="stat-label">Rating Promedio</div></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">PELÍCULAS POR DIRECTOR</div>
+      <div class="bar-chart" id="chart-directores"></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">TOP RATING POR PELÍCULA</div>
+      <div class="bar-chart" id="chart-ratings"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL PELÍCULA -->
+<div class="modal-overlay" id="modal-pelicula">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal('modal-pelicula')">✕</button>
+    <div class="modal-title" id="modal-pelicula-title">Nueva Película</div>
+    <input type="hidden" id="pelicula-edit-id">
+    <div class="form-group">
+      <label class="form-label">Título *</label>
+      <input class="form-input" id="p-titulo" placeholder="Ej: Inception">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Año</label>
+        <input class="form-input" id="p-anio" type="number" placeholder="2024">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Calificación (0-10)</label>
+        <input class="form-input" id="p-calificacion" type="number" step="0.1" min="0" max="10" placeholder="8.5">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Director *</label>
+      <select class="form-select" id="p-director"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL del Póster</label>
+      <input class="form-input" id="p-poster" placeholder="https://...imagen.jpg">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-surface" onclick="cerrarModal('modal-pelicula')">Cancelar</button>
+      <button class="btn btn-accent" onclick="guardarPelicula()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DIRECTOR -->
+<div class="modal-overlay" id="modal-director">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal('modal-director')">✕</button>
+    <div class="modal-title">Nuevo Director</div>
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input class="form-input" id="d-nombre" placeholder="Ej: Christopher Nolan">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nacionalidad</label>
+        <input class="form-input" id="d-nacionalidad" placeholder="Ej: Británico">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Año de Nacimiento</label>
+        <input class="form-input" id="d-anio" type="number" placeholder="1970">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-surface" onclick="cerrarModal('modal-director')">Cancelar</button>
+      <button class="btn btn-accent" onclick="guardarDirector()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GÉNERO -->
+<div class="modal-overlay" id="modal-genero">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal('modal-genero')">✕</button>
+    <div class="modal-title">Nuevo Género</div>
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input class="form-input" id="g-nombre" placeholder="Ej: Ciencia Ficción">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <input class="form-input" id="g-descripcion" placeholder="Breve descripción del género">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-surface" onclick="cerrarModal('modal-genero')">Cancelar</button>
+      <button class="btn btn-accent" onclick="guardarGenero()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
