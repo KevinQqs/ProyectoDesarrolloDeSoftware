@@ -23,3 +23,11 @@ app.mount("/static", StaticFiles(directory="."), name="static")
 @app.get("/")
 def index():
     return FileResponse("index.html")
+
+@app.get("/login")
+def login():
+    return FileResponse("login.html")
+
+@app.get("/admin")
+def admin():
+    return FileResponse("admin.html")

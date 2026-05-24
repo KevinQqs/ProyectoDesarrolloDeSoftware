@@ -10,19 +10,16 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <a class="logo" href="#">Pelis<span>B</span></a>
   <nav>
     <button class="active" onclick="showSection('peliculas', this)">Películas</button>
-    <button onclick="showSection('directores', this)">Directores</button>
-    <button onclick="showSection('generos', this)">Géneros</button>
     <button onclick="showSection('dashboard', this)">Dashboard</button>
+    <a href="/login" class="btn btn-surface btn-sm" style="text-decoration:none;display:flex;align-items:center">Admin</a>
   </nav>
 </header>
 
-<!-- SEARCH -->
-<div class="search-wrap" id="search-wrap">
+<div class="search-wrap">
   <div class="search-title">BUSCAR PELÍCULA</div>
   <div class="search-row">
     <input class="search-input" id="search-input" type="text" placeholder="Escribe un título..." oninput="onSearch(this.value)">
@@ -31,19 +28,13 @@
   </div>
 </div>
 
-<!-- FILTER ROW -->
-<div class="filter-row" id="filter-row">
+<div class="filter-row">
   <span class="filter-label">MOSTRAR:</span>
   <button class="filter-chip active" onclick="setFiltro('todas', this)">Todas</button>
   <button class="filter-chip" onclick="setFiltro('activas', this)">Activas</button>
-  <button class="filter-chip" onclick="setFiltro('inactivas', this)">Inactivas</button>
-  <button class="btn btn-accent btn-sm" onclick="abrirModalNuevaPelicula()" style="margin-left:auto">+ Nueva Película</button>
 </div>
 
-<!-- MAIN -->
 <main>
-
-  <!-- PELÍCULAS -->
   <section class="section active" id="section-peliculas">
     <div class="section-header">
       <span class="section-title">Películas</span>
@@ -54,34 +45,10 @@
     </div>
   </section>
 
-  <!-- DIRECTORES -->
-  <section class="section" id="section-directores">
-    <div class="section-header">
-      <span class="section-title">Directores</span>
-      <button class="btn btn-accent btn-sm" onclick="abrirModal('modal-director')">+ Nuevo Director</button>
-    </div>
-    <div class="list" id="list-directores">
-      <div class="loading"><div class="spinner"></div>Cargando directores...</div>
-    </div>
-  </section>
-
-  <!-- GÉNEROS -->
-  <section class="section" id="section-generos">
-    <div class="section-header">
-      <span class="section-title">Géneros</span>
-      <button class="btn btn-accent btn-sm" onclick="abrirModal('modal-genero')">+ Nuevo Género</button>
-    </div>
-    <div class="list" id="list-generos">
-      <div class="loading"><div class="spinner"></div>Cargando géneros...</div>
-    </div>
-  </section>
-
-  <!-- DASHBOARD -->
   <section class="section" id="section-dashboard">
     <div class="section-title" style="margin-bottom:24px">Dashboard</div>
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-number" id="stat-peliculas">—</div><div class="stat-label">Películas</div></div>
-      <div class="stat-card"><div class="stat-number" id="stat-activas">—</div><div class="stat-label">Activas</div></div>
       <div class="stat-card"><div class="stat-number" id="stat-directores">—</div><div class="stat-label">Directores</div></div>
       <div class="stat-card"><div class="stat-number" id="stat-generos">—</div><div class="stat-label">Géneros</div></div>
       <div class="stat-card"><div class="stat-number" id="stat-rating">—</div><div class="stat-label">Rating Promedio</div></div>
@@ -95,93 +62,9 @@
       <div class="bar-chart" id="chart-ratings"></div>
     </div>
   </section>
-
 </main>
 
-<!-- ── MODAL PELÍCULA ── -->
-<div class="modal-overlay" id="modal-pelicula">
-  <div class="modal">
-    <button class="modal-close" onclick="cerrarModal('modal-pelicula')">✕</button>
-    <div class="modal-title" id="modal-pelicula-title">Nueva Película</div>
-    <input type="hidden" id="pelicula-edit-id">
-    <div class="form-group">
-      <label class="form-label">Título *</label>
-      <input class="form-input" id="p-titulo" placeholder="Ej: Inception">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Año</label>
-        <input class="form-input" id="p-anio" type="number" placeholder="2024">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Calificación (0-10)</label>
-        <input class="form-input" id="p-calificacion" type="number" step="0.1" min="0" max="10" placeholder="8.5">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Director *</label>
-      <select class="form-select" id="p-director"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">URL del Póster</label>
-      <input class="form-input" id="p-poster" placeholder="https://...imagen.jpg">
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-surface" onclick="cerrarModal('modal-pelicula')">Cancelar</button>
-      <button class="btn btn-accent" onclick="guardarPelicula()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL DIRECTOR ── -->
-<div class="modal-overlay" id="modal-director">
-  <div class="modal">
-    <button class="modal-close" onclick="cerrarModal('modal-director')">✕</button>
-    <div class="modal-title">Nuevo Director</div>
-    <div class="form-group">
-      <label class="form-label">Nombre *</label>
-      <input class="form-input" id="d-nombre" placeholder="Ej: Christopher Nolan">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Nacionalidad</label>
-        <input class="form-input" id="d-nacionalidad" placeholder="Ej: Británico">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Año de Nacimiento</label>
-        <input class="form-input" id="d-anio" type="number" placeholder="1970">
-      </div>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-surface" onclick="cerrarModal('modal-director')">Cancelar</button>
-      <button class="btn btn-accent" onclick="guardarDirector()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL GÉNERO ── -->
-<div class="modal-overlay" id="modal-genero">
-  <div class="modal">
-    <button class="modal-close" onclick="cerrarModal('modal-genero')">✕</button>
-    <div class="modal-title">Nuevo Género</div>
-    <div class="form-group">
-      <label class="form-label">Nombre *</label>
-      <input class="form-input" id="g-nombre" placeholder="Ej: Ciencia Ficción">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Descripción</label>
-      <input class="form-input" id="g-descripcion" placeholder="Breve descripción del género">
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-surface" onclick="cerrarModal('modal-genero')">Cancelar</button>
-      <button class="btn btn-accent" onclick="guardarGenero()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOASTS -->
 <div class="toast-container" id="toasts"></div>
-
-<script src="/static/app.js"></script>
+<script src="/static/public.js"></script>
 </body>
 </html>
