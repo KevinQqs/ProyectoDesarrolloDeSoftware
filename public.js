@@ -99,20 +99,20 @@ function renderPeliculas(lista) {
 
   // Solo vista, sin botones de editar/eliminar
   grid.innerHTML = lista.map(p => `
-    <div class="card ${p.activo ? '' : 'inactiva'}">
-      <div class="card-poster">
-        ${p.poster_url
-          ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
-          : '🎬'}
-        ${p.calificacion ? `<span class="card-badge">★ ${p.calificacion}</span>` : ''}
-        ${!p.activo ? `<span class="card-inactive-badge">Inactiva</span>` : ''}
-      </div>
-      <div class="card-body">
-        <div class="card-title">${p.titulo}</div>
-        <div class="card-meta">${p.anio || '—'}</div>
-      </div>
+  <div class="card ${p.activo ? '' : 'inactiva'}" onclick="abrirDetalle(${p.id})" style="cursor:pointer">
+    <div class="card-poster">
+      ${p.poster_url
+        ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
+        : '🎬'}
+      ${p.calificacion ? `<span class="card-badge">★ ${p.calificacion}</span>` : ''}
+      ${!p.activo ? `<span class="card-inactive-badge">Inactiva</span>` : ''}
     </div>
-  `).join('');
+    <div class="card-body">
+      <div class="card-title">${p.titulo}</div>
+      <div class="card-meta">${p.anio || '—'}</div>
+    </div>
+  </div>
+`).join('');
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
@@ -176,4 +176,47 @@ async function cargarDashboard() {
 
 document.addEventListener('DOMContentLoaded', () => {
   cargarPeliculas();
+});
+
+async function abrirDetalle(id) {
+  const [pelicula, directores, generos] = await Promise.all([
+    fetch(`${API}/peliculas/${id}`).then(r => r.json()),
+    fetch(`${API}/directores/`).then(r => r.json()),
+    fetch(`${API}/generos/`).then(r => r.json()),
+  ]);
+
+  const director = directores.find(d => d.id === pelicula.director_id);
+  const generosP = await fetch(`${API}/peliculas/${id}/generos`).then(r => r.json()).catch(() => []);
+
+  // Póster
+  const posterEl = document.getElementById('detalle-poster');
+  posterEl.innerHTML = pelicula.poster_url
+    ? `<img src="${pelicula.poster_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='🎬'">`
+    : '🎬';
+
+  document.getElementById('detalle-titulo').textContent = pelicula.titulo;
+  document.getElementById('detalle-meta').textContent =
+    `${pelicula.anio || '—'} · Dir. ${director ? director.nombre : '—'}`;
+
+  document.getElementById('detalle-rating').innerHTML = pelicula.calificacion
+    ? `<span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent)">★ ${pelicula.calificacion}</span><span style="color:var(--muted);font-size:0.8rem"> / 10</span>`
+    : '';
+
+  document.getElementById('detalle-generos').innerHTML = generosP.map(g =>
+    `<span style="background:rgba(232,197,71,0.1);border:1px solid rgba(232,197,71,0.3);color:var(--accent);padding:3px 10px;border-radius:20px;font-size:0.75rem">${g.nombre}</span>`
+  ).join('');
+
+  document.getElementById('detalle-sinopsis').textContent =
+    pelicula.sinopsis || 'Sin sinopsis disponible.';
+
+  document.getElementById('modal-detalle').classList.add('open');
+}
+
+function cerrarDetalle() {
+  document.getElementById('modal-detalle').classList.remove('open');
+}
+
+// Cerrar modal detalle al hacer clic fuera
+document.getElementById('modal-detalle').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-detalle')) cerrarDetalle();
 });
