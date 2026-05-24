@@ -427,13 +427,13 @@ async function cargarDashboard() {
 // ── INIT ──────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem('pelisb_auth')) {
+    window.location.href = '/login';
+    return;
+  }
+
   cargarPeliculas();
   cargarDirectoresEnSelect();
-
-if (!localStorage.getItem('pelisb_auth')) {
-  window.location.href = '/login';
-}
-
 });
 
 function cerrarSesion() {
