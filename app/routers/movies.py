@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
-from app.models import Pelicula, PeliculaCrear, PeliculaActualizar, Director
+from app.models import Pelicula, PeliculaCrear, PeliculaActualizar, Director, Genero, PeliculaGenero
 from app.db import get_session
 
 router = APIRouter(prefix="/peliculas", tags=["peliculas"])
@@ -78,3 +78,38 @@ def eliminar_pelicula(pelicula_id: int, session: Session = Depends(get_session))
     session.add(pelicula)
     session.commit()
     return {"mensaje": "Película desactivada"}
+
+# Agregar al final de app/routers/movies.py
+
+from app.models import Pelicula, PeliculaCrear, PeliculaActualizar, Director, Genero, PeliculaGenero
+
+@router.post("/{pelicula_id}/generos/{genero_id}", status_code=201)
+def agregar_genero(pelicula_id: int, genero_id: int, session: Session = Depends(get_session)):
+    pelicula = session.get(Pelicula, pelicula_id)
+    if not pelicula:
+        raise HTTPException(status_code=404, detail="Película no encontrada")
+    genero = session.get(Genero, genero_id)
+    if not genero:
+        raise HTTPException(status_code=404, detail="Género no encontrado")
+    enlace = PeliculaGenero(pelicula_id=pelicula_id, genero_id=genero_id)
+    session.add(enlace)
+    session.commit()
+    return {"mensaje": f"Género '{genero.nombre}' agregado a '{pelicula.titulo}'"}
+
+
+@router.delete("/{pelicula_id}/generos/{genero_id}", status_code=200)
+def quitar_genero(pelicula_id: int, genero_id: int, session: Session = Depends(get_session)):
+    enlace = session.get(PeliculaGenero, (pelicula_id, genero_id))
+    if not enlace:
+        raise HTTPException(status_code=404, detail="Relación no encontrada")
+    session.delete(enlace)
+    session.commit()
+    return {"mensaje": "Género removido de la película"}
+
+
+@router.get("/{pelicula_id}/generos", response_model=list[Genero])
+def obtener_generos_pelicula(pelicula_id: int, session: Session = Depends(get_session)):
+    pelicula = session.get(Pelicula, pelicula_id)
+    if not pelicula:
+        raise HTTPException(status_code=404, detail="Película no encontrada")
+    return pelicula.generos
