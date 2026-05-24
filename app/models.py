@@ -28,6 +28,8 @@ class PeliculaBase(SQLModel):
     titulo: str
     anio: int | None = Field(default=None, nullable=True)
     calificacion: float | None = Field(default=None, nullable=True)
+    sinopsis: str | None = Field(default=None, nullable=True)
+    poster_url: str | None = Field(default=None, nullable=True)
     director_id: int = Field(foreign_key="director.id")
 
 class Pelicula(PeliculaBase, table=True):
@@ -43,7 +45,10 @@ class PeliculaActualizar(SQLModel):
     titulo: str | None = None
     anio: int | None = None
     calificacion: float | None = None
+    sinopsis: str | None = None
+    poster_url: str | None = None
     director_id: int | None = None
+    activo: bool | None = None
 
 
 class GeneroBase(SQLModel):
