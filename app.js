@@ -163,6 +163,7 @@ async function guardarPelicula() {
   if (!titulo || !director_id) {
     toast('Título y director son obligatorios', 'error');
     return;
+
   }
 
   const body = {
@@ -171,6 +172,7 @@ async function guardarPelicula() {
     anio: parseInt(document.getElementById('p-anio').value) || null,
     calificacion: parseFloat(document.getElementById('p-calificacion').value) || null,
     poster_url: document.getElementById('p-poster').value || null,
+    sinopsis: document.getElementById('p-sinopsis').value || null,
   };
 
   try {
@@ -201,6 +203,7 @@ async function editarPelicula(id) {
   document.getElementById('p-calificacion').value     = p.calificacion || '';
   document.getElementById('p-director').value         = p.director_id;
   document.getElementById('p-poster').value           = p.poster_url || '';
+  document.getElementById('p-sinopsis').value         = p.sinopsis || '';
   document.getElementById('modal-pelicula-title').textContent = 'Editar Película';
   abrirModal('modal-pelicula');
 }
@@ -223,8 +226,8 @@ async function reactivarPelicula(id) {
 }
 
 function limpiarFormPelicula() {
-  ['pelicula-edit-id', 'p-titulo', 'p-anio', 'p-calificacion', 'p-poster']
-    .forEach(id => { document.getElementById(id).value = ''; });
+  ['pelicula-edit-id', 'p-titulo', 'p-anio', 'p-calificacion', 'p-poster', 'p-sinopsis']
+  .forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('modal-pelicula-title').textContent = 'Nueva Película';
 }
 
