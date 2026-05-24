@@ -84,6 +84,20 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-director-detalle">
+  <div class="modal" style="max-width:560px">
+    <button class="modal-close" onclick="document.getElementById('modal-director-detalle').classList.remove('open')">✕</button>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+      <div id="dir-detalle-foto" style="width:120px;height:120px;border-radius:50%;overflow:hidden;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0;border:2px solid var(--border)"></div>
+      <div style="flex:1;min-width:180px">
+        <div id="dir-detalle-nombre" style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--accent);margin-bottom:4px"></div>
+        <div id="dir-detalle-meta" style="font-size:0.82rem;color:var(--muted);margin-bottom:16px"></div>
+        <div id="dir-detalle-bio" style="font-size:0.88rem;line-height:1.7;color:#c0c0c8"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toasts"></div>
 <script src="/static/public.js"></script>
 </body>

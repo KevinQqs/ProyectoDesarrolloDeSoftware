@@ -275,10 +275,16 @@ async function guardarDirector() {
   if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
 
   const body = {
-    nombre,
-    nacionalidad: document.getElementById('d-nacionalidad').value || null,
-    anio_nacimiento: parseInt(document.getElementById('d-anio').value) || null,
-  };
+  nombre,
+  nacionalidad: document.getElementById('d-nacionalidad').value || null,
+  anio_nacimiento: parseInt(document.getElementById('d-anio').value) || null,
+  foto_url: document.getElementById('d-foto').value || null,
+  biografia: document.getElementById('d-biografia').value || null,
+};
+
+  ['d-nombre', 'd-nacionalidad', 'd-anio', 'd-foto', 'd-biografia'].forEach(id => {
+  document.getElementById(id).value = '';
+});
 
   const r = await fetch(`${API}/directores/`, {
     method: 'POST',

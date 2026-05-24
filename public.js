@@ -220,3 +220,23 @@ function cerrarDetalle() {
 document.getElementById('modal-detalle').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-detalle')) cerrarDetalle();
 });
+
+document.getElementById('detalle-meta').innerHTML =
+  `${pelicula.anio || '—'} · Dir. <span onclick="abrirDirector(${pelicula.director_id})" style="color:var(--accent);cursor:pointer;text-decoration:underline">${director ? director.nombre : '—'}</span>`;
+
+async function abrirDirector(id) {
+  const director = await fetch(`${API}/directores/${id}`).then(r => r.json());
+
+  const fotoEl = document.getElementById('dir-detalle-foto');
+  fotoEl.innerHTML = director.foto_url
+    ? `<img src="${director.foto_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='🎬'">`
+    : '🎬';
+
+  document.getElementById('dir-detalle-nombre').textContent = director.nombre;
+  document.getElementById('dir-detalle-meta').textContent =
+    `${director.nacionalidad || '—'} · ${director.anio_nacimiento || '—'}`;
+  document.getElementById('dir-detalle-bio').textContent =
+    director.biografia || 'Sin biografía disponible.';
+
+  document.getElementById('modal-director-detalle').classList.add('open');
+}

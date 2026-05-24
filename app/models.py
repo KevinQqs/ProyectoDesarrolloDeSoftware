@@ -5,6 +5,8 @@ class DirectorBase(SQLModel):
     nombre: str
     nacionalidad: str | None = Field(default=None, nullable=True)
     anio_nacimiento: int | None = Field(default=None, nullable=True)
+    foto_url: str | None = Field(default=None, nullable=True)
+    biografia: str | None = Field(default=None, nullable=True)
 
 class Director(DirectorBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -17,6 +19,8 @@ class DirectorActualizar(SQLModel):
     nombre: str | None = None
     nacionalidad: str | None = None
     anio_nacimiento: int | None = None
+    foto_url: str | None = None
+    biografia: str | None = None
 
 
 class PeliculaGenero(SQLModel, table=True):
