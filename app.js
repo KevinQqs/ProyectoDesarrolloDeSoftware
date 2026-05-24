@@ -6,6 +6,8 @@ let searchTimeout = null;
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
 
+
+
 function toast(msg, type = 'success') {
   const container = document.getElementById('toasts');
   const t = document.createElement('div');
@@ -427,4 +429,15 @@ async function cargarDashboard() {
 document.addEventListener('DOMContentLoaded', () => {
   cargarPeliculas();
   cargarDirectoresEnSelect();
+
+if (!localStorage.getItem('pelisb_auth')) {
+  window.location.href = '/login';
+}
+
 });
+
+function cerrarSesion() {
+  localStorage.removeItem('pelisb_auth');
+  window.location.href = '/login';
+}
+
