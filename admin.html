@@ -44,7 +44,7 @@
   </div>
 </div>
 
-<div class="filter-row" id="filter-row">
+const filterRow = document.getElementById('filter-row') || document.querySelector('.filter-row');
   <span class="filter-label">MOSTRAR:</span>
   <button class="filter-chip active" onclick="setFiltro('todas', this)">Todas</button>
   <button class="filter-chip" onclick="setFiltro('activas', this)">Activas</button>
