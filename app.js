@@ -450,30 +450,6 @@ function cerrarSesion() {
   localStorage.removeItem('pelisb_auth');
   window.location.href = '/login';
 
-  async function gestionarGeneros(peliculaId, titulo) {
-  document.getElementById('modal-generos-titulo').textContent = `Géneros — ${titulo}`;
-
-  const [todosGeneros, generosActuales] = await Promise.all([
-    fetch(`${API}/generos/`).then(r => r.json()),
-    fetch(`${API}/peliculas/${peliculaId}/generos`).then(r => r.json()).catch(() => []),
-  ]);
-
-  const idsActuales = generosActuales.map(g => g.id);
-
-  document.getElementById('lista-generos-checks').innerHTML = todosGeneros.map(g => `
-    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2)">
-      <input type="checkbox"
-        ${idsActuales.includes(g.id) ? 'checked' : ''}
-        onchange="toggleGenero(${peliculaId}, ${g.id}, this.checked)"
-        style="width:16px;height:16px;accent-color:var(--accent)">
-      <span>${g.nombre}</span>
-      ${g.descripcion ? `<span style="color:var(--muted);font-size:0.75rem;margin-left:auto">${g.descripcion}</span>` : ''}
-    </label>
-  `).join('');
-
-  abrirModal('modal-generos-pelicula');
-}
-
 async function toggleGenero(peliculaId, generoId, agregar) {
   const url = `${API}/peliculas/${peliculaId}/generos/${generoId}`;
   const method = agregar ? 'POST' : 'DELETE';
