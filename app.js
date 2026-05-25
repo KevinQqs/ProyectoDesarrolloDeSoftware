@@ -44,10 +44,9 @@ function showSection(name, btn) {
   if (btn) btn.classList.add('active');
 
   const searchWrap = document.getElementById('search-wrap');
-  const filterRow = document.getElementById('filter-row');
   const isPeliculas = name === 'peliculas';
   searchWrap.style.display = isPeliculas ? '' : 'none';
-  filterRow.style.display = isPeliculas ? '' : 'none';
+  document.querySelectorAll('.filter-row').forEach(r => r.style.display = isPeliculas ? '' : 'none');
 
   if (name === 'directores') cargarDirectores();
   if (name === 'generos') cargarGeneros();
