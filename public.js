@@ -68,7 +68,8 @@ function setFiltro(tipo, btn) {
 
 function aplicarFiltro(peliculas) {
   let filtradas = peliculas;
-  if (filtroActual === 'activas') filtradas = peliculas.filter(p => p.activo);
+  if (filtroActual === 'activas') filtradas = filtradas.filter(p => p.activo);
+  if (generoActual !== null) filtradas = filtradas.filter(p => p._generos && p._generos.includes(generoActual));
   renderPeliculas(filtradas);
 }
 
@@ -81,10 +82,12 @@ async function cargarPeliculas() {
       fetch(`${API}/generos/`).then(r => r.json()),
     ]);
 
-    // Cargar géneros de cada película
+    // Cargar géneros de cada película en paralelo
     const generosMap = await Promise.all(
       peliculas.map(p =>
-        fetch(`${API}/peliculas/${p.id}/generos`).then(r => r.json()).catch(() => [])
+        fetch(`${API}/peliculas/${p.id}/generos`)
+          .then(r => r.json())
+          .catch(() => [])
       )
     );
 
