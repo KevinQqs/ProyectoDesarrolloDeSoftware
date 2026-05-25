@@ -82,7 +82,14 @@ function limpiarBusqueda() {
 
 function setFiltro(tipo, btn) {
   filtroActual = tipo;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.filter-row:first-of-type .filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  aplicarFiltro(todasLasPeliculas);
+}
+
+function setGenero(generoId, btn) {
+  generoActual = generoId;
+  document.querySelectorAll('#filter-generos .filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   aplicarFiltro(todasLasPeliculas);
 }
