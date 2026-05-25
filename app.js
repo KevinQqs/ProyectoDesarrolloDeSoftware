@@ -6,8 +6,6 @@ let searchTimeout = null;
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
 
-
-
 function toast(msg, type = 'success') {
   const container = document.getElementById('toasts');
   const t = document.createElement('div');
@@ -31,7 +29,6 @@ function abrirModalNuevaPelicula() {
   abrirModal('modal-pelicula');
 }
 
-// Cerrar modal al hacer clic fuera
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) overlay.classList.remove('open');
@@ -43,7 +40,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 function showSection(name, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-
   document.getElementById('section-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
 
@@ -67,15 +63,11 @@ function onSearch(val) {
 
 async function buscarPeliculas() {
   const q = document.getElementById('search-input').value.trim();
-  if (!q) {
-    aplicarFiltro(todasLasPeliculas);
-    return;
-  }
+  if (!q) { aplicarFiltro(todasLasPeliculas); return; }
   try {
     const r = await fetch(`${API}/peliculas/buscar/${encodeURIComponent(q)}`);
     if (r.status === 404) { renderPeliculas([]); return; }
-    const data = await r.json();
-    renderPeliculas(data);
+    renderPeliculas(await r.json());
   } catch {
     toast('Error al buscar películas', 'error');
   }
@@ -129,31 +121,27 @@ function renderPeliculas(lista) {
   }
 
   grid.innerHTML = lista.map(p => `
-  <div class="card ${p.activo ? '' : 'inactiva'}">
-    <div class="card-poster">
-      ${p.poster_url
-        ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
-        : '🎬'}
-      ${p.calificacion
-        ? `<span class="card-badge">★ ${p.calificacion}</span>`
-        : ''}
-      ${!p.activo
-        ? `<span class="card-inactive-badge">Inactiva</span>`
-        : ''}
-    </div>
-    <div class="card-body">
-      <div class="card-title">${p.titulo}</div>
-      <div class="card-meta">${p.anio || '—'}</div>
-      <div class="card-actions">
-        <button class="btn btn-surface btn-sm" onclick="editarPelicula(${p.id})">Editar</button>
-        <button class="btn btn-surface btn-sm" onclick="gestionarGeneros(${p.id}, '${p.titulo}')">Géneros</button>
-        ${p.activo
-          ? `<button class="btn btn-danger btn-sm" onclick="desactivarPelicula(${p.id})">Desactivar</button>`
-          : `<button class="btn btn-success btn-sm" onclick="reactivarPelicula(${p.id})">Activar</button>`}
+    <div class="card ${p.activo ? '' : 'inactiva'}">
+      <div class="card-poster">
+        ${p.poster_url
+          ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
+          : '🎬'}
+        ${p.calificacion ? `<span class="card-badge">★ ${p.calificacion}</span>` : ''}
+        ${!p.activo ? `<span class="card-inactive-badge">Inactiva</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${p.titulo}</div>
+        <div class="card-meta">${p.anio || '—'}</div>
+        <div class="card-actions">
+          <button class="btn btn-surface btn-sm" onclick="editarPelicula(${p.id})">Editar</button>
+          <button class="btn btn-surface btn-sm" onclick="gestionarGeneros(${p.id}, '${p.titulo}')">Géneros</button>
+          ${p.activo
+            ? `<button class="btn btn-danger btn-sm" onclick="desactivarPelicula(${p.id})">Desactivar</button>`
+            : `<button class="btn btn-success btn-sm" onclick="reactivarPelicula(${p.id})">Activar</button>`}
+        </div>
       </div>
     </div>
-  </div>
-`).join('');
+  `).join('');
 }
 
 async function guardarPelicula() {
@@ -164,7 +152,6 @@ async function guardarPelicula() {
   if (!titulo || !director_id) {
     toast('Título y director son obligatorios', 'error');
     return;
-
   }
 
   const body = {
@@ -228,8 +215,45 @@ async function reactivarPelicula(id) {
 
 function limpiarFormPelicula() {
   ['pelicula-edit-id', 'p-titulo', 'p-anio', 'p-calificacion', 'p-poster', 'p-sinopsis']
-  .forEach(id => { document.getElementById(id).value = ''; });
+    .forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('modal-pelicula-title').textContent = 'Nueva Película';
+}
+
+// ── GÉNEROS DE PELÍCULA ───────────────────────────────────────────────────
+
+async function gestionarGeneros(peliculaId, titulo) {
+  document.getElementById('modal-generos-titulo').textContent = `Géneros — ${titulo}`;
+
+  const [todosGeneros, generosActuales] = await Promise.all([
+    fetch(`${API}/generos/`).then(r => r.json()),
+    fetch(`${API}/peliculas/${peliculaId}/generos`).then(r => r.json()).catch(() => []),
+  ]);
+
+  const idsActuales = generosActuales.map(g => g.id);
+
+  document.getElementById('lista-generos-checks').innerHTML = todosGeneros.map(g => `
+    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2)">
+      <input type="checkbox"
+        ${idsActuales.includes(g.id) ? 'checked' : ''}
+        onchange="toggleGenero(${peliculaId}, ${g.id}, this.checked)"
+        style="width:16px;height:16px;accent-color:var(--accent)">
+      <span>${g.nombre}</span>
+      ${g.descripcion ? `<span style="color:var(--muted);font-size:0.75rem;margin-left:auto">${g.descripcion}</span>` : ''}
+    </label>
+  `).join('');
+
+  abrirModal('modal-generos-pelicula');
+}
+
+async function toggleGenero(peliculaId, generoId, agregar) {
+  const url = `${API}/peliculas/${peliculaId}/generos/${generoId}`;
+  const method = agregar ? 'POST' : 'DELETE';
+  const r = await fetch(url, { method });
+  if (r.ok) {
+    toast(agregar ? 'Género agregado' : 'Género removido');
+  } else {
+    toast('Error al actualizar género', 'error');
+  }
 }
 
 // ── DIRECTORES ────────────────────────────────────────────────────────────
@@ -250,7 +274,11 @@ async function cargarDirectores() {
 
   el.innerHTML = lista.map(d => `
     <div class="dir-card">
-      <div class="dir-avatar">🎬</div>
+      <div class="dir-avatar">
+        ${d.foto_url
+          ? `<img src="${d.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='🎬'">`
+          : '🎬'}
+      </div>
       <div>
         <div class="dir-name">${d.nombre}</div>
         <div class="dir-meta">${d.nacionalidad || '—'} · ${d.anio_nacimiento || '—'}</div>
@@ -276,16 +304,12 @@ async function guardarDirector() {
   if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
 
   const body = {
-  nombre,
-  nacionalidad: document.getElementById('d-nacionalidad').value || null,
-  anio_nacimiento: parseInt(document.getElementById('d-anio').value) || null,
-  foto_url: document.getElementById('d-foto').value || null,
-  biografia: document.getElementById('d-biografia').value || null,
-};
-
-  ['d-nombre', 'd-nacionalidad', 'd-anio', 'd-foto', 'd-biografia'].forEach(id => {
-  document.getElementById(id).value = '';
-});
+    nombre,
+    nacionalidad: document.getElementById('d-nacionalidad').value || null,
+    anio_nacimiento: parseInt(document.getElementById('d-anio').value) || null,
+    foto_url: document.getElementById('d-foto').value || null,
+    biografia: document.getElementById('d-biografia').value || null,
+  };
 
   const r = await fetch(`${API}/directores/`, {
     method: 'POST',
@@ -296,7 +320,7 @@ async function guardarDirector() {
   if (r.ok) {
     toast('Director creado');
     cerrarModal('modal-director');
-    ['d-nombre', 'd-nacionalidad', 'd-anio'].forEach(id => {
+    ['d-nombre', 'd-nacionalidad', 'd-anio', 'd-foto', 'd-biografia'].forEach(id => {
       document.getElementById(id).value = '';
     });
     cargarDirectores();
@@ -394,7 +418,6 @@ async function cargarDashboard() {
   document.getElementById('stat-generos').textContent    = generos.length;
   document.getElementById('stat-rating').textContent     = avgRating;
 
-  // Gráfica: películas por director
   const porDirector = {};
   for (const p of peliculas) {
     const dir = directores.find(d => d.id === p.director_id);
@@ -404,8 +427,7 @@ async function cargarDashboard() {
   const maxDir = Math.max(...Object.values(porDirector), 1);
   document.getElementById('chart-directores').innerHTML =
     Object.entries(porDirector)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
+      .sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([nombre, valor]) => `
         <div class="bar-row">
           <div class="bar-label" title="${nombre}">${nombre}</div>
@@ -414,10 +436,8 @@ async function cargarDashboard() {
               <span class="bar-value">${valor}</span>
             </div>
           </div>
-        </div>`)
-      .join('');
+        </div>`).join('');
 
-  // Gráfica: top rating por película
   const conRating = peliculas
     .filter(p => p.calificacion)
     .sort((a, b) => b.calificacion - a.calificacion)
@@ -441,7 +461,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/login';
     return;
   }
-
   cargarPeliculas();
   cargarDirectoresEnSelect();
 });
@@ -449,50 +468,4 @@ document.addEventListener('DOMContentLoaded', () => {
 function cerrarSesion() {
   localStorage.removeItem('pelisb_auth');
   window.location.href = '/login';
-
-async function toggleGenero(peliculaId, generoId, agregar) {
-  const url = `${API}/peliculas/${peliculaId}/generos/${generoId}`;
-  const method = agregar ? 'POST' : 'DELETE';
-  const r = await fetch(url, { method });
-  if (r.ok) {
-    toast(agregar ? 'Género agregado' : 'Género removido');
-  } else {
-    toast('Error al actualizar género', 'error');
-  }
 }
-async function gestionarGeneros(peliculaId, titulo) {
-  document.getElementById('modal-generos-titulo').textContent = `Géneros — ${titulo}`;
-
-  const [todosGeneros, generosActuales] = await Promise.all([
-    fetch(`${API}/generos/`).then(r => r.json()),
-    fetch(`${API}/peliculas/${peliculaId}/generos`).then(r => r.json()).catch(() => []),
-  ]);
-
-  const idsActuales = generosActuales.map(g => g.id);
-
-  document.getElementById('lista-generos-checks').innerHTML = todosGeneros.map(g => `
-    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2)">
-      <input type="checkbox"
-        ${idsActuales.includes(g.id) ? 'checked' : ''}
-        onchange="toggleGenero(${peliculaId}, ${g.id}, this.checked)"
-        style="width:16px;height:16px;accent-color:var(--accent)">
-      <span>${g.nombre}</span>
-      ${g.descripcion ? `<span style="color:var(--muted);font-size:0.75rem;margin-left:auto">${g.descripcion}</span>` : ''}
-    </label>
-  `).join('');
-
-  abrirModal('modal-generos-pelicula');
-}
-
-async function toggleGenero(peliculaId, generoId, agregar) {
-  const url = `${API}/peliculas/${peliculaId}/generos/${generoId}`;
-  const method = agregar ? 'POST' : 'DELETE';
-  const r = await fetch(url, { method });
-  if (r.ok) {
-    toast(agregar ? 'Género agregado' : 'Género removido');
-  } else {
-    toast('Error al actualizar género', 'error');
-  }
-}
-}
-
