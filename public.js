@@ -97,22 +97,21 @@ function renderPeliculas(lista) {
     return;
   }
 
-  // Solo vista, sin botones de editar/eliminar
   grid.innerHTML = lista.map(p => `
-  <div class="card ${p.activo ? '' : 'inactiva'}" onclick="abrirDetalle(${p.id})" style="cursor:pointer">
-    <div class="card-poster">
-      ${p.poster_url
-        ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
-        : '🎬'}
-      ${p.calificacion ? `<span class="card-badge">★ ${p.calificacion}</span>` : ''}
-      ${!p.activo ? `<span class="card-inactive-badge">Inactiva</span>` : ''}
+    <div class="card ${p.activo ? '' : 'inactiva'}" onclick="abrirDetalle(${p.id})" style="cursor:pointer">
+      <div class="card-poster">
+        ${p.poster_url
+          ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
+          : '🎬'}
+        ${p.calificacion ? `<span class="card-badge">★ ${p.calificacion}</span>` : ''}
+        ${!p.activo ? `<span class="card-inactive-badge">Inactiva</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${p.titulo}</div>
+        <div class="card-meta">${p.anio || '—'}</div>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="card-title">${p.titulo}</div>
-      <div class="card-meta">${p.anio || '—'}</div>
-    </div>
-  </div>
-`).join('');
+  `).join('');
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
@@ -134,7 +133,6 @@ async function cargarDashboard() {
   document.getElementById('stat-generos').textContent    = generos.length;
   document.getElementById('stat-rating').textContent     = avgRating;
 
-  // Gráfica: películas por director
   const porDirector = {};
   for (const p of peliculas) {
     const dir = directores.find(d => d.id === p.director_id);
@@ -155,7 +153,6 @@ async function cargarDashboard() {
           </div>
         </div>`).join('');
 
-  // Gráfica: top rating
   const conRating = peliculas
     .filter(p => p.calificacion)
     .sort((a, b) => b.calificacion - a.calificacion)
@@ -172,31 +169,29 @@ async function cargarDashboard() {
     </div>`).join('');
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', () => {
-  cargarPeliculas();
-});
+// ── DETALLE PELÍCULA ──────────────────────────────────────────────────────
 
 async function abrirDetalle(id) {
-  const [pelicula, directores, generos] = await Promise.all([
+  const [pelicula, directores] = await Promise.all([
     fetch(`${API}/peliculas/${id}`).then(r => r.json()),
     fetch(`${API}/directores/`).then(r => r.json()),
-    fetch(`${API}/generos/`).then(r => r.json()),
   ]);
 
   const director = directores.find(d => d.id === pelicula.director_id);
   const generosP = await fetch(`${API}/peliculas/${id}/generos`).then(r => r.json()).catch(() => []);
 
-  // Póster
   const posterEl = document.getElementById('detalle-poster');
   posterEl.innerHTML = pelicula.poster_url
     ? `<img src="${pelicula.poster_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='🎬'">`
     : '🎬';
 
   document.getElementById('detalle-titulo').textContent = pelicula.titulo;
-  document.getElementById('detalle-meta').textContent =
-    `${pelicula.anio || '—'} · Dir. ${director ? director.nombre : '—'}`;
+
+  document.getElementById('detalle-meta').innerHTML =
+    `${pelicula.anio || '—'} · Dir. <span
+      onclick="abrirDirector(${pelicula.director_id})"
+      style="color:var(--accent);cursor:pointer;text-decoration:underline;font-weight:500"
+    >${director ? director.nombre : '—'}</span>`;
 
   document.getElementById('detalle-rating').innerHTML = pelicula.calificacion
     ? `<span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent)">★ ${pelicula.calificacion}</span><span style="color:var(--muted);font-size:0.8rem"> / 10</span>`
@@ -216,13 +211,11 @@ function cerrarDetalle() {
   document.getElementById('modal-detalle').classList.remove('open');
 }
 
-// Cerrar modal detalle al hacer clic fuera
 document.getElementById('modal-detalle').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-detalle')) cerrarDetalle();
 });
 
-document.getElementById('detalle-meta').innerHTML =
-  `${pelicula.anio || '—'} · Dir. <span onclick="abrirDirector(${pelicula.director_id})" style="color:var(--accent);cursor:pointer;text-decoration:underline">${director ? director.nombre : '—'}</span>`;
+// ── DETALLE DIRECTOR ──────────────────────────────────────────────────────
 
 async function abrirDirector(id) {
   const director = await fetch(`${API}/directores/${id}`).then(r => r.json());
@@ -240,3 +233,17 @@ async function abrirDirector(id) {
 
   document.getElementById('modal-director-detalle').classList.add('open');
 }
+
+function cerrarDirector() {
+  document.getElementById('modal-director-detalle').classList.remove('open');
+}
+
+document.getElementById('modal-director-detalle').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-director-detalle')) cerrarDirector();
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  cargarPeliculas();
+});
