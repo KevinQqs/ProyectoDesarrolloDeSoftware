@@ -202,6 +202,18 @@
   </div>
 </div>
 
+<!-- MODAL GÉNEROS PELÍCULA -->
+<div class="modal-overlay" id="modal-generos-pelicula">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal('modal-generos-pelicula')">✕</button>
+    <div class="modal-title" id="modal-generos-titulo">Géneros</div>
+    <div id="lista-generos-checks" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+    <div class="form-actions">
+      <button class="btn btn-accent" onclick="cerrarModal('modal-generos-pelicula')">Listo</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toasts"></div>
 <script src="/static/app.js"></script>
 </body>

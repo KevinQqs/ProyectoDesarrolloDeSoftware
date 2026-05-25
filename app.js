@@ -129,30 +129,31 @@ function renderPeliculas(lista) {
   }
 
   grid.innerHTML = lista.map(p => `
-    <div class="card ${p.activo ? '' : 'inactiva'}">
-      <div class="card-poster">
-        ${p.poster_url
-          ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
-          : '🎬'}
-        ${p.calificacion
-          ? `<span class="card-badge">★ ${p.calificacion}</span>`
-          : ''}
-        ${!p.activo
-          ? `<span class="card-inactive-badge">Inactiva</span>`
-          : ''}
-      </div>
-      <div class="card-body">
-        <div class="card-title">${p.titulo}</div>
-        <div class="card-meta">${p.anio || '—'}</div>
-        <div class="card-actions">
-          <button class="btn btn-surface btn-sm" onclick="editarPelicula(${p.id})">Editar</button>
-          ${p.activo
-            ? `<button class="btn btn-danger btn-sm" onclick="desactivarPelicula(${p.id})">Desactivar</button>`
-            : `<button class="btn btn-success btn-sm" onclick="reactivarPelicula(${p.id})">Activar</button>`}
-        </div>
+  <div class="card ${p.activo ? '' : 'inactiva'}">
+    <div class="card-poster">
+      ${p.poster_url
+        ? `<img src="${p.poster_url}" alt="${p.titulo}" onerror="this.style.display='none'">`
+        : '🎬'}
+      ${p.calificacion
+        ? `<span class="card-badge">★ ${p.calificacion}</span>`
+        : ''}
+      ${!p.activo
+        ? `<span class="card-inactive-badge">Inactiva</span>`
+        : ''}
+    </div>
+    <div class="card-body">
+      <div class="card-title">${p.titulo}</div>
+      <div class="card-meta">${p.anio || '—'}</div>
+      <div class="card-actions">
+        <button class="btn btn-surface btn-sm" onclick="editarPelicula(${p.id})">Editar</button>
+        <button class="btn btn-surface btn-sm" onclick="gestionarGeneros(${p.id}, '${p.titulo}')">Géneros</button>
+        ${p.activo
+          ? `<button class="btn btn-danger btn-sm" onclick="desactivarPelicula(${p.id})">Desactivar</button>`
+          : `<button class="btn btn-success btn-sm" onclick="reactivarPelicula(${p.id})">Activar</button>`}
       </div>
     </div>
-  `).join('');
+  </div>
+`).join('');
 }
 
 async function guardarPelicula() {
@@ -448,5 +449,40 @@ document.addEventListener('DOMContentLoaded', () => {
 function cerrarSesion() {
   localStorage.removeItem('pelisb_auth');
   window.location.href = '/login';
+
+  async function gestionarGeneros(peliculaId, titulo) {
+  document.getElementById('modal-generos-titulo').textContent = `Géneros — ${titulo}`;
+
+  const [todosGeneros, generosActuales] = await Promise.all([
+    fetch(`${API}/generos/`).then(r => r.json()),
+    fetch(`${API}/peliculas/${peliculaId}/generos`).then(r => r.json()).catch(() => []),
+  ]);
+
+  const idsActuales = generosActuales.map(g => g.id);
+
+  document.getElementById('lista-generos-checks').innerHTML = todosGeneros.map(g => `
+    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2)">
+      <input type="checkbox"
+        ${idsActuales.includes(g.id) ? 'checked' : ''}
+        onchange="toggleGenero(${peliculaId}, ${g.id}, this.checked)"
+        style="width:16px;height:16px;accent-color:var(--accent)">
+      <span>${g.nombre}</span>
+      ${g.descripcion ? `<span style="color:var(--muted);font-size:0.75rem;margin-left:auto">${g.descripcion}</span>` : ''}
+    </label>
+  `).join('');
+
+  abrirModal('modal-generos-pelicula');
+}
+
+async function toggleGenero(peliculaId, generoId, agregar) {
+  const url = `${API}/peliculas/${peliculaId}/generos/${generoId}`;
+  const method = agregar ? 'POST' : 'DELETE';
+  const r = await fetch(url, { method });
+  if (r.ok) {
+    toast(agregar ? 'Género agregado' : 'Género removido');
+  } else {
+    toast('Error al actualizar género', 'error');
+  }
+}
 }
 
