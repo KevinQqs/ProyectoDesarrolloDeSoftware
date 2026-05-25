@@ -89,8 +89,8 @@ function setFiltro(tipo, btn) {
 
 function aplicarFiltro(peliculas) {
   let filtradas = peliculas;
-  if (filtroActual === 'activas')   filtradas = peliculas.filter(p => p.activo);
-  if (filtroActual === 'inactivas') filtradas = peliculas.filter(p => !p.activo);
+  if (filtroActual === 'activas') filtradas = filtradas.filter(p => p.activo);
+  if (generoActual !== null) filtradas = filtradas.filter(p => p._generos && p._generos.includes(generoActual));
   renderPeliculas(filtradas);
 }
 
@@ -468,4 +468,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function cerrarSesion() {
   localStorage.removeItem('pelisb_auth');
   window.location.href = '/login';
+}
+
+function setGenero(generoId, btn) {
+  generoActual = generoId;
+  document.querySelectorAll('#filter-generos .filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  aplicarFiltro(todasLasPeliculas);
 }

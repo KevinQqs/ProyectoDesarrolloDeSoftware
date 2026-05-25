@@ -3,6 +3,7 @@ const API = 'https://proyectodesarrollodesoftware.onrender.com';
 let todasLasPeliculas = [];
 let filtroActual = 'todas';
 let searchTimeout = null;
+let generoActual = null;
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
 
@@ -75,8 +76,32 @@ function aplicarFiltro(peliculas) {
 
 async function cargarPeliculas() {
   try {
-    const r = await fetch(`${API}/peliculas/`);
-    todasLasPeliculas = await r.json();
+    const [peliculas, generos] = await Promise.all([
+      fetch(`${API}/peliculas/`).then(r => r.json()),
+      fetch(`${API}/generos/`).then(r => r.json()),
+    ]);
+
+    // Cargar géneros de cada película
+    const generosMap = await Promise.all(
+      peliculas.map(p =>
+        fetch(`${API}/peliculas/${p.id}/generos`).then(r => r.json()).catch(() => [])
+      )
+    );
+
+    todasLasPeliculas = peliculas.map((p, i) => ({
+      ...p,
+      _generos: generosMap[i].map(g => g.id),
+    }));
+
+    // Poblar chips de géneros
+    const filterGeneros = document.getElementById('filter-generos');
+    filterGeneros.innerHTML =
+      `<span class="filter-label">GÉNERO:</span>
+       <button class="filter-chip active" onclick="setGenero(null, this)">Todos</button>` +
+      generos.map(g =>
+        `<button class="filter-chip" onclick="setGenero(${g.id}, this)">${g.nombre}</button>`
+      ).join('');
+
     aplicarFiltro(todasLasPeliculas);
   } catch {
     toast('Error al cargar películas', 'error');
