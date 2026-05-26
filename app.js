@@ -3,7 +3,7 @@ const API = 'https://proyectodesarrollodesoftware.onrender.com';
 let todasLasPeliculas = [];
 let filtroActual = 'todas';
 let searchTimeout = null;
-
+let generoActual = null;
 // ── UTILS ──────────────────────────────────────────────────────────────────
 
 function toast(msg, type = 'success') {
@@ -95,8 +95,8 @@ function setGenero(generoId, btn) {
 
 function aplicarFiltro(peliculas) {
   let filtradas = peliculas;
-  if (filtroActual === 'activas') filtradas = filtradas.filter(p => p.activo);
-  if (generoActual !== null) filtradas = filtradas.filter(p => p._generos && p._generos.includes(generoActual));
+  if (filtroActual === 'activas')   filtradas = filtradas.filter(p => p.activo);
+  if (filtroActual === 'inactivas') filtradas = filtradas.filter(p => !p.activo);
   renderPeliculas(filtradas);
 }
 
