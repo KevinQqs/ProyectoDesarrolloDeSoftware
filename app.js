@@ -155,10 +155,7 @@ async function guardarPelicula() {
   const titulo = document.getElementById('p-titulo').value.trim();
   const director_id = parseInt(document.getElementById('p-director').value);
 
-  if (!titulo || !director_id) {
-    toast('Título y director son obligatorios', 'error');
-    return;
-  }
+  if (!validarPelicula()) return;
 
   const body = {
     titulo,
@@ -220,9 +217,88 @@ async function reactivarPelicula(id) {
 }
 
 function limpiarFormPelicula() {
+  limpiarErrores();
   ['pelicula-edit-id', 'p-titulo', 'p-anio', 'p-calificacion', 'p-poster', 'p-sinopsis']
     .forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('modal-pelicula-title').textContent = 'Nueva Película';
+}
+
+// ── VALIDACIONES ──────────────────────────────────────────────────────────
+
+function mostrarError(id, mensaje) {
+  const input = document.getElementById(id);
+  input.style.borderColor = 'var(--danger)';
+  let err = input.parentElement.querySelector('.field-error');
+  if (!err) {
+    err = document.createElement('span');
+    err.className = 'field-error';
+    err.style.cssText = 'color:var(--danger);font-size:0.75rem;margin-top:4px;display:block';
+    input.parentElement.appendChild(err);
+  }
+  err.textContent = mensaje;
+}
+
+function limpiarErrores() {
+  document.querySelectorAll('.field-error').forEach(e => e.remove());
+  document.querySelectorAll('.form-input, .form-select').forEach(i => {
+    i.style.borderColor = '';
+  });
+}
+
+function validarPelicula() {
+  limpiarErrores();
+  let valido = true;
+  const titulo = document.getElementById('p-titulo').value.trim();
+  const anio = parseInt(document.getElementById('p-anio').value);
+  const cal = parseFloat(document.getElementById('p-calificacion').value);
+  const poster = document.getElementById('p-poster').value.trim();
+  const director = document.getElementById('p-director').value;
+
+  if (titulo.length < 2) {
+    mostrarError('p-titulo', 'El título debe tener al menos 2 caracteres'); valido = false;
+  }
+  if (!director) {
+    mostrarError('p-director', 'Debes seleccionar un director'); valido = false;
+  }
+  if (document.getElementById('p-anio').value && (anio < 1888 || anio > 2030)) {
+    mostrarError('p-anio', 'El año debe estar entre 1888 y 2030'); valido = false;
+  }
+  if (document.getElementById('p-calificacion').value && (cal < 0 || cal > 10)) {
+    mostrarError('p-calificacion', 'La calificación debe estar entre 0 y 10'); valido = false;
+  }
+  if (poster && !poster.startsWith('https://')) {
+    mostrarError('p-poster', 'La URL debe comenzar con https://'); valido = false;
+  }
+  return valido;
+}
+
+function validarDirector() {
+  limpiarErrores();
+  let valido = true;
+  const nombre = document.getElementById('d-nombre').value.trim();
+  const anio = parseInt(document.getElementById('d-anio').value);
+  const foto = document.getElementById('d-foto').value.trim();
+
+  if (nombre.length < 2) {
+    mostrarError('d-nombre', 'El nombre debe tener al menos 2 caracteres'); valido = false;
+  }
+  if (document.getElementById('d-anio').value && (anio < 1850 || anio > 2010)) {
+    mostrarError('d-anio', 'El año debe estar entre 1850 y 2010'); valido = false;
+  }
+  if (foto && !foto.startsWith('https://')) {
+    mostrarError('d-foto', 'La URL debe comenzar con https://'); valido = false;
+  }
+  return valido;
+}
+
+function validarGenero() {
+  limpiarErrores();
+  let valido = true;
+  const nombre = document.getElementById('g-nombre').value.trim();
+  if (nombre.length < 2) {
+    mostrarError('g-nombre', 'El nombre debe tener al menos 2 caracteres'); valido = false;
+  }
+  return valido;
 }
 
 // ── GÉNEROS DE PELÍCULA ───────────────────────────────────────────────────
@@ -306,6 +382,7 @@ async function cargarDirectoresEnSelect() {
 }
 
 async function guardarDirector() {
+  if (!validarDirector()) return;
   const nombre = document.getElementById('d-nombre').value.trim();
   if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
 
@@ -370,6 +447,7 @@ async function cargarGeneros() {
 }
 
 async function guardarGenero() {
+  if (!validarGenero()) return;
   const nombre = document.getElementById('g-nombre').value.trim();
   if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
 
