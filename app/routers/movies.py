@@ -79,7 +79,6 @@ def eliminar_pelicula(pelicula_id: int, session: Session = Depends(get_session))
     session.commit()
     return {"mensaje": "Película desactivada"}
 
-# Agregar al final de app/routers/movies.py
 
 from app.models import Pelicula, PeliculaCrear, PeliculaActualizar, Director, Genero, PeliculaGenero
 
